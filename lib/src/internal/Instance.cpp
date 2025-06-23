@@ -174,18 +174,21 @@ namespace mxl::lib
         if (writer)
         {
             auto const& id = writer->getId();
-
-            auto const lock = std::lock_guard<std::mutex>{_mutex};
-            if (auto const pos = _writers.find(id); pos != _writers.end())
+            auto removeFlowWatch = false;
             {
-                if ((*pos).second.releaseReference())
+                auto const lock = std::lock_guard<std::mutex>{_mutex};
+                if (auto const pos = _writers.find(id); pos != _writers.end())
                 {
-                    if (dynamic_cast<ContinuousFlowWriter*>((*pos).second.get()) == nullptr)
+                    if ((*pos).second.releaseReference())
                     {
-                        _watcher->removeFlow(id, WatcherType::WRITER);
+                        removeFlowWatch = (dynamic_cast<ContinuousFlowWriter*>((*pos).second.get()) == nullptr);
+                        _writers.erase(pos);
                     }
-                    _writers.erase(pos);
                 }
+            }
+            if (removeFlowWatch)
+            {
+                _watcher->removeFlow(id, WatcherType::WRITER);
             }
         }
     }
