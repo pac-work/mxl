@@ -12,9 +12,9 @@ Charter. Briefly, Contributors submit content to the project, Maintainers review
 There are several ways to connect with the MXL project:
 
 - The MXL [GitHub discussions](https://github.com/dmf-mxl/mxl/discussions)
-- The email distribution list. To join the email distribution list, please click the "Join our group" button at the [EBU MXL group page](https://tech.ebu.ch/dmf/mxl). The EBU MXL group is free to join for everyone. You will receive the distribution list address as well as the link to register for the TSC meetings in the confirmation email after joining the group. Please note that you will need to create an account on the EBU page to proceed.
+- The email distribution list. To join the email distribution list, please click the "Join our group" button at the [EBU MXL group page](https://tech.ebu.ch/dmf/mxl). The EBU MXL group is free to join for everyone. You will receive the distribution list address as well as the link to register for the TSC meetings, the link to register for the RC meetings, and the link to join the MXL Slack workspace in the confirmation email after joining the group. Please note that you will need to create an account on the EBU page to proceed.
 - [GitHub Issues](https://github.com/dmf-mxl/mxl/issues) (used to track both bugs and feature requests)
-- Slack channel
+- Slack workspace. To join the MXL Slack workspace, please follow the procedure above for joining the email distribution list.
 - The regular TSC meetings are free to attend for all interested parties
 
 ## How to Ask for Help
@@ -62,7 +62,9 @@ We do not require a CLA at this time.
 
 ## Commit Sign-Off
 
-Every commit must be signed off.  That is, every commit log message must include a “`Signed-off-by`” line (generated, for example, with “`git commit --signoff`”), indicating that the Contributor wrote the code and has the right to release it under the [Apache-2.0](LICENSE.txt) license.
+Every commit must be signed off.  That is, every commit log message must include a “`Signed-off-by`” line (generated, for example, with “`git commit --signoff`”), indicating that the Contributor wrote the code and has the right to release it under the [Apache-2.0](LICENSE.txt) license. 
+
+Contributors are responsible for providing their email address from the organization's domain that owns the copyright for their committed contribution, ensuring the copyright holder can be tracked.
 
 # Development Workflow
 
@@ -114,12 +116,13 @@ This project uses [Catch2](https://github.com/catchorg/Catch2) automated testing
 
 ## Copyright Notices
 
-All new source files should begin with a copyright and license stating:
+According to the [project Charter](https://github.com/dmf-mxl/mxl/blob/main/GOVERNANCE/CHARTER.pdf) (section #8.a.), contribution copyright remains with the copyright holders. This can be tracked using the project's git commit history. 
 
-    //
-    // SPDX-License-Identifier: Apache-2.0
-    // Copyright (c) Contributors to the MXL Project.
-    //
+All new source files should begin with a copyright and license stating:
+```
+// SPDX-FileCopyrightText: 2025 Contributors to the Media eXchange Layer project.
+// SPDX-License-Identifier: Apache-2.0
+```
 
 ## Third-party libraries
 

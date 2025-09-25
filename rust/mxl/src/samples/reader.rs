@@ -28,7 +28,7 @@ impl SamplesReader {
         get_flow_info(&self.context, self.reader)
     }
 
-    pub fn get_samples(&self, index: u64, count: usize) -> Result<SamplesData> {
+    pub fn get_samples(&self, index: u64, count: usize) -> Result<SamplesData<'_>> {
         let mut buffer_slice: mxl_sys::WrappedMultiBufferSlice = unsafe { std::mem::zeroed() };
         unsafe {
             Error::from_status(self.context.api.mxl_flow_reader_get_samples(
@@ -59,10 +59,10 @@ impl SamplesReader {
 
 impl Drop for SamplesReader {
     fn drop(&mut self) {
-        if !self.reader.is_null() {
-            if let Err(err) = self.destroy_inner() {
-                tracing::error!("Failed to release MXL flow reader (continuous): {:?}", err);
-            }
+        if !self.reader.is_null()
+            && let Err(err) = self.destroy_inner()
+        {
+            tracing::error!("Failed to release MXL flow reader (continuous): {:?}", err);
         }
     }
 }

@@ -14,13 +14,16 @@ cmake_policy(SET CMP0076 NEW)
 # Set the timestamps of all extracted contents to the time of the extraction
 cmake_policy(SET CMP0135 NEW)
 
-set(mxl_VERSION 0.6.2)
+set(mxl_VERSION 0.6.3)
 
 if(DEFINED MXL_BUILD_NUMBER)
     string(APPEND mxl_VERSION ".${MXL_BUILD_NUMBER}")
 else()
     string(APPEND mxl_VERSION ".0")
 endif()
+
+option(BUILD_TESTS "Build the tests" ON)
+option(BUILD_TOOLS "Build the tools" ON)
 
 project(mxl
     VERSION ${mxl_VERSION}
@@ -57,6 +60,7 @@ if(APPLE)
 endif()
 
 add_subdirectory(lib)
+add_subdirectory(utils)
 if (BUILD_TOOLS)
     add_subdirectory(tools)
 endif()
