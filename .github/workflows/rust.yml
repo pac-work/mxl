@@ -96,7 +96,7 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
       - name: Clippy
-        run: cargo clippy --all-targets -F mxl-not-built -- -D warnings
+        run: cargo clippy --all-targets -F mxl-not-built -- -D warnings -W clippy::pedantic
 
   tests:
     name: Run the tests
