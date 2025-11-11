@@ -41,19 +41,19 @@ fn main() -> Result<(), mxl::Error> {
             &opts.flow_config_file, error
         ))
     })?;
-    let flow_info = mxl_instance.create_flow(flow_def.as_str(), None)?;
+    let flow_config_info = mxl_instance.create_flow(flow_def.as_str(), None)?;
 
-    if flow_info.is_discrete_flow() {
+    if flow_config_info.common().is_discrete_flow() {
         if opts.sample_batch_size.is_some() {
             return Err(mxl::Error::Other(
                 "Sample batch size is only relevant for \"continuous\" flows.".to_owned(),
             ));
         }
-        write_grains(mxl_instance, flow_info, opts.grain_or_sample_count)
+        write_grains(mxl_instance, flow_config_info, opts.grain_or_sample_count)
     } else {
         write_samples(
             mxl_instance,
-            flow_info,
+            flow_config_info,
             opts.grain_or_sample_count,
             opts.sample_batch_size,
         )
@@ -62,11 +62,11 @@ fn main() -> Result<(), mxl::Error> {
 
 pub fn write_grains(
     mxl_instance: mxl::MxlInstance,
-    flow_info: mxl::FlowInfo,
+    flow_config_info: mxl::FlowConfigInfo,
     grain_count: Option<u64>,
 ) -> Result<(), mxl::Error> {
-    let flow_id = flow_info.common_flow_info().id().to_string();
-    let grain_rate = flow_info.discrete_flow_info()?.grainRate;
+    let flow_id = flow_config_info.common().id().to_string();
+    let grain_rate = flow_config_info.common().grain_rate()?;
     let mut grain_index = mxl_instance.get_current_index(&grain_rate);
     info!(
         "Will write to flow \"{flow_id}\" with grain rate {}/{} starting from index {grain_index}.",
@@ -113,12 +113,12 @@ pub fn write_grains(
 
 pub fn write_samples(
     mxl_instance: mxl::MxlInstance,
-    flow_info: mxl::FlowInfo,
+    flow_config_info: mxl::FlowConfigInfo,
     sample_count: Option<u64>,
     batch_size: Option<u64>,
 ) -> Result<(), mxl::Error> {
-    let flow_id = flow_info.common_flow_info().id().to_string();
-    let sample_rate = flow_info.continuous_flow_info()?.sampleRate;
+    let flow_id = flow_config_info.common().id().to_string();
+    let sample_rate = flow_config_info.common().sample_rate()?;
     let batch_size =
         batch_size.unwrap_or((sample_rate.numerator / (100 * sample_rate.denominator)) as u64);
     let mut samples_index = mxl_instance.get_current_index(&sample_rate);

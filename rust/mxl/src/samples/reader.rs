@@ -5,7 +5,10 @@ use std::sync::Arc;
 
 use crate::{
     Error, Result, SamplesData,
-    flow::{FlowInfo, reader::get_flow_info},
+    flow::{
+        FlowConfigInfo, FlowInfo,
+        reader::{get_config_info, get_flow_info, get_runtime_info},
+    },
     instance::InstanceContext,
 };
 
@@ -27,8 +30,18 @@ impl SamplesReader {
         self.destroy_inner()
     }
 
+    /// The whole FlowInfo is quite a chunk of data. Go for `get_config_info` or `get_runtime_info`
+    /// if they contain what you need.
     pub fn get_info(&self) -> Result<FlowInfo> {
         get_flow_info(&self.context, self.reader)
+    }
+
+    pub fn get_config_info(&self) -> Result<FlowConfigInfo> {
+        get_config_info(&self.context, self.reader)
+    }
+
+    pub fn get_runtime_info(&self) -> Result<mxl_sys::mxlFlowRuntimeInfo> {
+        get_runtime_info(&self.context, self.reader)
     }
 
     pub fn get_samples(&self, index: u64, count: usize) -> Result<SamplesData<'_>> {

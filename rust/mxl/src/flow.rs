@@ -36,11 +36,16 @@ pub(crate) fn is_discrete_data_format(format: u32) -> bool {
 }
 
 pub struct FlowInfo {
-    pub(crate) value: mxl_sys::mxlFlowInfo,
+    pub config: FlowConfigInfo,
+    pub runtime: FlowRuntimeInfo,
 }
 
-impl FlowInfo {
-    pub fn discrete_flow_info(&self) -> Result<&mxl_sys::mxlDiscreteFlowInfo> {
+pub struct FlowConfigInfo {
+    pub(crate) value: mxl_sys::mxlFlowConfigInfo,
+}
+
+impl FlowConfigInfo {
+    pub fn discrete(&self) -> Result<&mxl_sys::mxlDiscreteFlowConfigInfo> {
         if !is_discrete_data_format(self.value.common.format) {
             return Err(Error::Other(format!(
                 "Flow format is {}, video or data required.",
@@ -50,7 +55,7 @@ impl FlowInfo {
         Ok(unsafe { &self.value.__bindgen_anon_1.discrete })
     }
 
-    pub fn continuous_flow_info(&self) -> Result<&mxl_sys::mxlContinuousFlowInfo> {
+    pub fn continuous(&self) -> Result<&mxl_sys::mxlContinuousFlowConfigInfo> {
         if is_discrete_data_format(self.value.common.format) {
             return Err(Error::Other(format!(
                 "Flow format is {}, audio required.",
@@ -60,8 +65,8 @@ impl FlowInfo {
         Ok(unsafe { &self.value.__bindgen_anon_1.continuous })
     }
 
-    pub fn common_flow_info(&self) -> CommonFlowInfo<'_> {
-        CommonFlowInfo(&self.value.common)
+    pub fn common(&self) -> CommonFlowConfigInfo<'_> {
+        CommonFlowConfigInfo(&self.value.common)
     }
 
     pub fn is_discrete_flow(&self) -> bool {
@@ -69,14 +74,78 @@ impl FlowInfo {
     }
 }
 
-pub struct CommonFlowInfo<'a>(&'a mxl_sys::mxlCommonFlowInfo);
+pub struct CommonFlowConfigInfo<'a>(&'a mxl_sys::mxlCommonFlowConfigInfo);
 
-impl CommonFlowInfo<'_> {
+impl CommonFlowConfigInfo<'_> {
     pub fn id(&self) -> Uuid {
         Uuid::from_bytes(self.0.id)
     }
 
+    pub fn data_format(&self) -> DataFormat {
+        DataFormat::from(self.0.format)
+    }
+
+    pub fn is_discrete_flow(&self) -> bool {
+        is_discrete_data_format(self.0.format)
+    }
+
+    pub fn grain_or_sample_rate(&self) -> mxl_sys::mxlRational {
+        self.0.grainRate
+    }
+
+    pub fn grain_rate(&self) -> Result<mxl_sys::mxlRational> {
+        let data_format = self.data_format();
+        if data_format != DataFormat::Video && data_format != DataFormat::Data {
+            return Err(Error::Other(format!(
+                "Flow format is {:?}, grain rate is only relevant for discrete flows.",
+                data_format
+            )));
+        }
+        Ok(self.0.grainRate)
+    }
+
+    pub fn sample_rate(&self) -> Result<mxl_sys::mxlRational> {
+        let data_format = self.data_format();
+        if data_format != DataFormat::Audio {
+            return Err(Error::Other(format!(
+                "Flow format is {:?}, sample rate is only relevant for continuous flows.",
+                data_format
+            )));
+        }
+        Ok(self.0.grainRate)
+    }
+
     pub fn max_commit_batch_size_hint(&self) -> u32 {
         self.0.maxCommitBatchSizeHint
+    }
+
+    pub fn max_sync_batch_size_hint(&self) -> u32 {
+        self.0.maxSyncBatchSizeHint
+    }
+
+    pub fn payload_location(&self) -> u32 {
+        self.0.payloadLocation
+    }
+
+    pub fn device_index(&self) -> i32 {
+        self.0.deviceIndex
+    }
+}
+
+pub struct FlowRuntimeInfo {
+    pub(crate) value: mxl_sys::mxlFlowRuntimeInfo,
+}
+
+impl FlowRuntimeInfo {
+    pub fn head_index(&self) -> u64 {
+        self.value.headIndex
+    }
+
+    pub fn last_write_time(&self) -> u64 {
+        self.value.lastWriteTime
+    }
+
+    pub fn last_read_time(&self) -> u64 {
+        self.value.lastReadTime
     }
 }

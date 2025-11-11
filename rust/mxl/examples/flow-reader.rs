@@ -37,7 +37,7 @@ fn main() -> Result<(), mxl::Error> {
     let mxl_instance = mxl::MxlInstance::new(mxl_api, &opts.mxl_domain, "")?;
     let reader = mxl_instance.create_flow_reader(&opts.flow_id)?;
     let flow_info = reader.get_info()?;
-    if flow_info.is_discrete_flow() {
+    if flow_info.config.is_discrete_flow() {
         if opts.sample_batch_size.is_some() {
             return Err(mxl::Error::Other(
                 "Sample batch size is only relevant for \"continuous\" flows.".to_owned(),
@@ -59,7 +59,7 @@ fn read_grains(
     reader: mxl::GrainReader,
     flow_info: mxl::FlowInfo,
 ) -> Result<(), mxl::Error> {
-    let rate = flow_info.discrete_flow_info()?.grainRate;
+    let rate = flow_info.config.common().grain_rate()?;
     let current_index = mxl_instance.get_current_index(&rate);
 
     info!("Grain rate: {}/{}", rate.numerator, rate.denominator);
@@ -81,9 +81,9 @@ fn read_samples(
     flow_info: mxl::FlowInfo,
     batch_size: Option<u64>,
 ) -> Result<(), mxl::Error> {
-    let flow_id = flow_info.common_flow_info().id().to_string();
-    let sample_rate = flow_info.continuous_flow_info()?.sampleRate;
-    let common_flow_info = flow_info.common_flow_info();
+    let common_flow_info = flow_info.config.common();
+    let flow_id = common_flow_info.id().to_string();
+    let sample_rate = common_flow_info.sample_rate()?;
     let batch_size = if let Some(batch_size) = batch_size {
         if common_flow_info.max_commit_batch_size_hint() != 0
             && batch_size != common_flow_info.max_commit_batch_size_hint() as u64
@@ -105,7 +105,7 @@ fn read_samples(
     } else {
         common_flow_info.max_commit_batch_size_hint() as usize
     };
-    let mut read_head = reader.get_info()?.continuous_flow_info()?.headIndex;
+    let mut read_head = reader.get_runtime_info()?.headIndex;
     let mut read_head_valid_at = mxl_instance.get_time();
     info!(
         "Will read from flow \"{flow_id}\" with sample rate {}/{}, using batches of size \
@@ -147,7 +147,7 @@ fn read_samples(
                 warn!("Timeout while waiting for samples at index {}.", next_head);
                 return Err(mxl::Error::Timeout);
             }
-            let available_head = reader.get_info()?.continuous_flow_info()?.headIndex;
+            let available_head = reader.get_runtime_info()?.headIndex;
             if available_head >= next_head {
                 break;
             }

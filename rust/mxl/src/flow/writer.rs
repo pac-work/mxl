@@ -73,7 +73,7 @@ impl FlowWriter {
                 "Error while getting flow type from temporary reader: {error}"
             ))
         })?;
-        Ok(flow_info.value.common.format)
+        Ok(flow_info.config.value.common.format)
     }
 }
 

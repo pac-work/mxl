@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use crate::{
-    DataFormat, Error, GrainReader, Result, SamplesReader,
+    DataFormat, Error, FlowConfigInfo, FlowRuntimeInfo, GrainReader, Result, SamplesReader,
     flow::{FlowInfo, is_discrete_data_format},
     instance::InstanceContext,
 };
@@ -26,7 +26,44 @@ pub(crate) fn get_flow_info(
     unsafe {
         Error::from_status(context.api.flow_reader_get_info(reader, &mut flow_info))?;
     }
-    Ok(FlowInfo { value: flow_info })
+    Ok(FlowInfo {
+        config: FlowConfigInfo {
+            value: flow_info.config,
+        },
+        runtime: FlowRuntimeInfo {
+            value: flow_info.runtime,
+        },
+    })
+}
+
+pub(crate) fn get_config_info(
+    context: &Arc<InstanceContext>,
+    reader: mxl_sys::mxlFlowReader,
+) -> Result<FlowConfigInfo> {
+    let mut config_info: mxl_sys::mxlFlowConfigInfo = unsafe { std::mem::zeroed() };
+    unsafe {
+        Error::from_status(
+            context
+                .api
+                .flow_reader_get_config_info(reader, &mut config_info),
+        )?;
+    }
+    Ok(FlowConfigInfo { value: config_info })
+}
+
+pub(crate) fn get_runtime_info(
+    context: &Arc<InstanceContext>,
+    reader: mxl_sys::mxlFlowReader,
+) -> Result<mxl_sys::mxlFlowRuntimeInfo> {
+    let mut runtime_info: mxl_sys::mxlFlowRuntimeInfo = unsafe { std::mem::zeroed() };
+    unsafe {
+        Error::from_status(
+            context
+                .api
+                .flow_reader_get_runtime_info(reader, &mut runtime_info),
+        )?;
+    }
+    Ok(runtime_info)
 }
 
 impl FlowReader {
@@ -39,7 +76,7 @@ impl FlowReader {
     }
 
     pub fn to_grain_reader(mut self) -> Result<GrainReader> {
-        let flow_type = self.get_info()?.value.common.format;
+        let flow_type = self.get_info()?.config.value.common.format;
         if !is_discrete_data_format(flow_type) {
             return Err(Error::Other(format!(
                 "Cannot convert MxlFlowReader to GrainReader for continuous flow of type \"{:?}\".",
@@ -52,7 +89,7 @@ impl FlowReader {
     }
 
     pub fn to_samples_reader(mut self) -> Result<SamplesReader> {
-        let flow_type = self.get_info()?.value.common.format;
+        let flow_type = self.get_info()?.config.value.common.format;
         if is_discrete_data_format(flow_type) {
             return Err(Error::Other(format!(
                 "Cannot convert MxlFlowReader to SamplesReader for discrete flow of type \"{:?}\".",

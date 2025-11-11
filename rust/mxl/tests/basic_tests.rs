@@ -54,10 +54,10 @@ fn read_flow_def<P: AsRef<std::path::Path>>(path: P) -> String {
         .unwrap()
 }
 
-fn prepare_flow_info<P: AsRef<std::path::Path>>(
+fn prepare_flow_config_info<P: AsRef<std::path::Path>>(
     mxl_instance: &MxlInstance,
     path: P,
-) -> mxl::FlowInfo {
+) -> mxl::FlowConfigInfo {
     let flow_def = read_flow_def(path);
     mxl_instance.create_flow(flow_def.as_str(), None).unwrap()
 }
@@ -65,13 +65,13 @@ fn prepare_flow_info<P: AsRef<std::path::Path>>(
 #[test]
 fn basic_mxl_grain_writing_reading() {
     let mxl_instance = setup_test("grains");
-    let flow_info = prepare_flow_info(&mxl_instance, "lib/tests/data/v210_flow.json");
-    let flow_id = flow_info.common_flow_info().id().to_string();
+    let flow_config_info = prepare_flow_config_info(&mxl_instance, "lib/tests/data/v210_flow.json");
+    let flow_id = flow_config_info.common().id().to_string();
     let flow_writer = mxl_instance.create_flow_writer(flow_id.as_str()).unwrap();
     let grain_writer = flow_writer.to_grain_writer().unwrap();
     let flow_reader = mxl_instance.create_flow_reader(flow_id.as_str()).unwrap();
     let grain_reader = flow_reader.to_grain_reader().unwrap();
-    let rate = flow_info.discrete_flow_info().unwrap().grainRate;
+    let rate = flow_config_info.common().grain_rate().unwrap();
     let current_index = mxl_instance.get_current_index(&rate);
     let grain_write_access = grain_writer.open_grain(current_index).unwrap();
     let total_slices = grain_write_access.total_slices();
@@ -90,13 +90,13 @@ fn basic_mxl_grain_writing_reading() {
 #[test]
 fn basic_mxl_samples_writing_reading() {
     let mxl_instance = setup_test("samples");
-    let flow_info = prepare_flow_info(&mxl_instance, "lib/tests/data/audio_flow.json");
-    let flow_id = flow_info.common_flow_info().id().to_string();
+    let flow_info = prepare_flow_config_info(&mxl_instance, "lib/tests/data/audio_flow.json");
+    let flow_id = flow_info.common().id().to_string();
     let flow_writer = mxl_instance.create_flow_writer(flow_id.as_str()).unwrap();
     let samples_writer = flow_writer.to_samples_writer().unwrap();
     let flow_reader = mxl_instance.create_flow_reader(flow_id.as_str()).unwrap();
     let samples_reader = flow_reader.to_samples_reader().unwrap();
-    let rate = flow_info.continuous_flow_info().unwrap().sampleRate;
+    let rate = flow_info.common().sample_rate().unwrap();
     let current_index = mxl_instance.get_current_index(&rate);
     let samples_write_access = samples_writer.open_samples(current_index, 42).unwrap();
     samples_write_access.commit().unwrap();
@@ -118,7 +118,7 @@ fn get_flow_def() {
     let mxl_instance = setup_test("flow_def");
     let flow_def = read_flow_def("lib/tests/data/v210_flow.json");
     let flow_info = mxl_instance.create_flow(flow_def.as_str(), None).unwrap();
-    let flow_id = flow_info.common_flow_info().id().to_string();
+    let flow_id = flow_info.common().id().to_string();
     let retrieved_flow_def = mxl_instance.get_flow_def(flow_id.as_str()).unwrap();
     assert_eq!(flow_def, retrieved_flow_def);
     mxl_instance.destroy_flow(flow_id.as_str()).unwrap();

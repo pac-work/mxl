@@ -31,7 +31,7 @@ pub struct MxlApi {
         instance: mxl_sys::mxlInstance,
         flow_def: *const std::os::raw::c_char,
         options: *const std::os::raw::c_char,
-        info: *mut mxl_sys::mxlFlowInfo,
+        info: *mut mxl_sys::mxlFlowConfigInfo,
     ) -> mxl_sys::mxlStatus,
 
     #[dlopen2_name = "mxlDestroyFlow"]
@@ -80,6 +80,18 @@ pub struct MxlApi {
     flow_reader_get_info: unsafe extern "C" fn(
         reader: mxl_sys::mxlFlowReader,
         info: *mut mxl_sys::mxlFlowInfo,
+    ) -> mxl_sys::mxlStatus,
+
+    #[dlopen2_name = "mxlFlowReaderGetConfigInfo"]
+    flow_reader_get_config_info: unsafe extern "C" fn(
+        reader: mxl_sys::mxlFlowReader,
+        info: *mut mxl_sys::mxlFlowConfigInfo,
+    ) -> mxl_sys::mxlStatus,
+
+    #[dlopen2_name = "mxlFlowReaderGetRuntimeInfo"]
+    flow_reader_get_runtime_info: unsafe extern "C" fn(
+        reader: mxl_sys::mxlFlowReader,
+        info: *mut mxl_sys::mxlFlowRuntimeInfo,
     ) -> mxl_sys::mxlStatus,
 
     #[dlopen2_name = "mxlFlowReaderGetGrain"]

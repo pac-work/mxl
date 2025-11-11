@@ -3,7 +3,7 @@
 
 use std::{ffi::CString, sync::Arc};
 
-use crate::{Error, FlowInfo, FlowReader, FlowWriter, Result, api::MxlApiHandle};
+use crate::{Error, FlowConfigInfo, FlowReader, FlowWriter, Result, api::MxlApiHandle};
 
 /// This struct stores the context that is shared by all objects.
 /// It is separated out from `MxlInstance` so that it can be cloned
@@ -110,10 +110,10 @@ impl MxlInstance {
     /// For now, we provide direct access to the MXL API for creating and
     /// destroying flows. Maybe it would be worth to provide RAII wrapper...
     /// Instead? As well?
-    pub fn create_flow(&self, flow_def: &str, options: Option<&str>) -> Result<FlowInfo> {
+    pub fn create_flow(&self, flow_def: &str, options: Option<&str>) -> Result<FlowConfigInfo> {
         let flow_def = CString::new(flow_def)?;
         let options = CString::new(options.unwrap_or(""))?;
-        let mut info = std::mem::MaybeUninit::<mxl_sys::mxlFlowInfo>::uninit();
+        let mut info = std::mem::MaybeUninit::<mxl_sys::mxlFlowConfigInfo>::uninit();
 
         unsafe {
             Error::from_status(self.context.api.create_flow(
@@ -125,7 +125,7 @@ impl MxlInstance {
         }
 
         let info = unsafe { info.assume_init() };
-        Ok(FlowInfo { value: info })
+        Ok(FlowConfigInfo { value: info })
     }
 
     /// See `create_flow` for more info.
