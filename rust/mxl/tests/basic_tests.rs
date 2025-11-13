@@ -12,17 +12,43 @@ use tracing::info;
 
 static LOG_ONCE: std::sync::Once = std::sync::Once::new();
 
-fn setup_empty_domain(test: &str) -> String {
-    let result = format!("/dev/shm/mxl_rust_unit_tests_domain_{}", test);
-    if std::path::Path::new(result.as_str()).exists() {
-        std::fs::remove_dir_all(result.as_str())
-            .expect("Failed to remove existing test domain directory");
-    }
-    std::fs::create_dir_all(result.as_str()).expect("Failed to create test domain directory");
-    result
+struct TestDomainGuard {
+    dir: std::path::PathBuf,
 }
 
-fn setup_test(test: &str) -> mxl::MxlInstance {
+impl TestDomainGuard {
+    fn new(test: &str) -> Self {
+        let dir = std::path::PathBuf::from(format!(
+            "/dev/shm/mxl_rust_unit_tests_domain_{}_{}",
+            test,
+            uuid::Uuid::new_v4()
+        ));
+        std::fs::create_dir_all(dir.as_path()).unwrap_or_else(|_| {
+            panic!(
+                "Failed to create test domain directory \"{}\".",
+                dir.display()
+            )
+        });
+        Self { dir }
+    }
+
+    fn domain(&self) -> String {
+        self.dir.to_string_lossy().to_string()
+    }
+}
+
+impl Drop for TestDomainGuard {
+    fn drop(&mut self) {
+        std::fs::remove_dir_all(self.dir.as_path()).unwrap_or_else(|_| {
+            panic!(
+                "Failed to remove test domain directory \"{}\".",
+                self.dir.display()
+            )
+        });
+    }
+}
+
+fn setup_test(test: &str) -> (MxlInstance, TestDomainGuard) {
     // Set up the logging to use the RUST_LOG environment variable and if not present, print INFO
     // and higher.
     LOG_ONCE.call_once(|| {
@@ -36,8 +62,11 @@ fn setup_test(test: &str) -> mxl::MxlInstance {
     });
 
     let mxl_api = mxl::load_api(get_mxl_so_path()).unwrap();
-    let domain = setup_empty_domain(test);
-    mxl::MxlInstance::new(mxl_api, &domain, "").unwrap()
+    let domain_guard = TestDomainGuard::new(test);
+    (
+        MxlInstance::new(mxl_api, domain_guard.domain().as_str(), "").unwrap(),
+        domain_guard,
+    )
 }
 
 fn read_flow_def<P: AsRef<std::path::Path>>(path: P) -> String {
@@ -64,7 +93,7 @@ fn prepare_flow_config_info<P: AsRef<std::path::Path>>(
 
 #[test]
 fn basic_mxl_grain_writing_reading() {
-    let mxl_instance = setup_test("grains");
+    let (mxl_instance, _domain_guard) = setup_test("grains");
     let flow_config_info = prepare_flow_config_info(&mxl_instance, "lib/tests/data/v210_flow.json");
     let flow_id = flow_config_info.common().id().to_string();
     let flow_writer = mxl_instance.create_flow_writer(flow_id.as_str()).unwrap();
@@ -89,7 +118,7 @@ fn basic_mxl_grain_writing_reading() {
 
 #[test]
 fn basic_mxl_samples_writing_reading() {
-    let mxl_instance = setup_test("samples");
+    let (mxl_instance, _domain_guard) = setup_test("samples");
     let flow_info = prepare_flow_config_info(&mxl_instance, "lib/tests/data/audio_flow.json");
     let flow_id = flow_info.common().id().to_string();
     let flow_writer = mxl_instance.create_flow_writer(flow_id.as_str()).unwrap();
@@ -115,7 +144,7 @@ fn basic_mxl_samples_writing_reading() {
 
 #[test]
 fn get_flow_def() {
-    let mxl_instance = setup_test("flow_def");
+    let (mxl_instance, _domain_guard) = setup_test("flow_def");
     let flow_def = read_flow_def("lib/tests/data/v210_flow.json");
     let flow_info = mxl_instance.create_flow(flow_def.as_str(), None).unwrap();
     let flow_id = flow_info.common().id().to_string();
