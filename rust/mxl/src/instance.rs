@@ -27,9 +27,8 @@ impl InstanceContext {
         unsafe {
             let mut instance = std::ptr::null_mut();
             std::mem::swap(&mut self.instance, &mut instance);
-            self.api.destroy_instance(self.instance)
-        };
-        Ok(())
+            Error::from_status(self.api.destroy_instance(instance))
+        }
     }
 }
 
