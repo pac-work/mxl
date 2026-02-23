@@ -6,7 +6,7 @@ metadata:
   name: domain-pv
 spec:
   capacity:
-    storage: 64M
+    storage: 32M
   accessModes:
     - ReadWriteMany
   storageClassName: mxl-domain
@@ -31,7 +31,7 @@ spec:
   storageClassName: mxl-domain
   resources:
     requests:
-      storage: 64M
+      storage: 32M
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,7 +88,7 @@ spec:
 
               mkdir -vp "/dev/shm/mxl/example"
               echo "mounting tmpfs at /dev/shm/mxl/example"
-              systemd-run -G --wait -q -- mount -t tmpfs -o size=64M,nosuid,nodev,noexec,strictatime tmpfs /dev/shm/mxl/example
+              systemd-run -G --wait -q -- mount -t tmpfs -o size=32M,nosuid,nodev,noexec,strictatime tmpfs /dev/shm/mxl/example
               systemd-run -G --wait -q -- mkdir -v /dev/shm/mxl/example/data
               systemd-run -G --wait -q -- chown -R 1000:1000 /dev/shm/mxl/example/data
       containers:
