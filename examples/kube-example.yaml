@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2025 Contributors to the Media eXchange Layer project.
+# SPDX-License-Identifier: Apache-2.0
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -8,8 +10,6 @@ spec:
   accessModes:
     - ReadWriteMany
   storageClassName: mxl-domain
-  mountOptions:
-    - strictatime
   local:
     path: /dev/shm/mxl/example/data
   nodeAffinity:
@@ -36,7 +36,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: domain-volume-lifecycle-controller
+  name: mxl-domain-volume-lifecycle-controller
 spec:
   replicas: 1
   selector:
