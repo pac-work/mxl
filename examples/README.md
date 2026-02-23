@@ -8,7 +8,7 @@ This examples launches a total of 6 containers, 3 for video, 3 for audio.
 mxl-example-audio-flow-writer
 mxl-example-video-flow-writer
 ```
-These run the `mxl-gst-testsrc` tool provided in the repository to publish a testsignal.
+These run the `mxl-gst-testsrc` tool provided in the repository to publish a test signal.
 
 ```
 mxl-example-audio-fake-reader
@@ -61,10 +61,10 @@ docker compose up -d
 
 # Kubernetes Example
 
-Note: Tested on K3S and Kubernetes created with `kubeadm`. This will probably not run on more restrictive Kubernetes distributions like Openshift or Rancher.
+Note: Tested on K3S and Kubernetes created with `kubeadm`. This will probably not run on more restrictive Kubernetes distributions like OpenShift or Rancher without modification.
 
 Follow the same steps above to build the images. If you don't want to use a registry to access the images from the kubernetes cluster, you can export the images to a file and import them on your kubernetes cluster node.
-On the system where your built the images:
+On the system where you built the images:
 ```bash
 scripts/export-images.sh mxl-example-images.tar.gz
 ```
