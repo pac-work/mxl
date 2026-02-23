@@ -27,7 +27,6 @@ You can check the output and observe if everything is working correctly by runni
 docker logs mxl-example-video-flow-info-1
 ```
 
-```
 You can also bind the mxl domain created as part of the docker compose deployment to a local mountpoint using a script provided in the `scripts` directory.
 ```bash
 scripts/bind-compose-domain.sh ./mxl-domain
@@ -62,22 +61,25 @@ docker compose up -d
 
 # Kubernetes Example
 
-Note: Tested on K3S and vanilla Kubernetes created with `kubeadm`. This will probably not run on more restricive Kubernetes distributions like Openshift or Rancher.
+Note: Tested on K3S and Kubernetes created with `kubeadm`. This will probably not run on more restrictive Kubernetes distributions like Openshift or Rancher.
 
-Follow the same steps above to build the container images. If you don't want to use a registry to access the images from the kubernetes cluster, export the images built in docker compose to a file and import them on your node.
+Follow the same steps above to build the images. If you don't want to use a registry to access the images from the kubernetes cluster, you can export the images to a file and import them on your kubernetes cluster node.
 On the system where your built the images:
 ```bash
 scripts/export-images.sh mxl-example-images.tar.gz
 ```
 On the kubernetes node (when using containerd):
 ```bash
-gunzip < mxl-example-images.tar.gz | ctr image import -
+gunzip < mxl-example-images.tar.gz | sudo ctr image import -
 ```
 
-If you want to use a registry, you also need to change the image references in `kube-example.yaml` to point to the images in your registry.
+If you want to use a registry, you will need to change the image references in `kube-example.yaml` to point to the images in your registry.
+```bash
+sed -i 's%docker.io/library/%images.mycompany.com/repos/%g'
+```
 
-Because PersistentVolumes requires a `nodeAffinity` clause you also need to inject the hostname of the node you want to run the example containers on in the kuberenetes deployment.
-You can use the script provided in the `examples/scripts` directory.
+Because PersistentVolumes requires a `nodeAffinity` clause you also need to inject the hostname of the node you want to run the example containers on into the deployment.
+You can use the provided script.
 ```bash
 scripts/render-kube-template.sh my-node-hostname > /tmp/deployment.yml
 ```

@@ -16,7 +16,9 @@ services:
       context: ..
       target: mxl-gst-testsrc
     volumes:
-      - mxl-domain:/mxl-domain
+      - type: volume
+        source: mxl-domain
+        target: /mxl-domain
       - type: bind
         source: flow-configs
         target: /home/mxl/flow-configs
